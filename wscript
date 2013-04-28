@@ -75,6 +75,7 @@ def build (bld):
     executor = bld.objects (
         target = "executor",
         features = ["cxx"],
+        cxxflags = "-fPIC",
         source = bld.path.ant_glob(['executor/**/*.cc']),
         use = 'BOOST BOOST_THREAD LIBEVENT LIBEVENT_PTHREADS LOG4CXX',
         includes = ".",
@@ -83,6 +84,7 @@ def build (bld):
     scheduler = bld.objects (
         target = "scheduler",
         features = ["cxx"],
+        cxxflags = "-fPIC",
         source = bld.path.ant_glob(['scheduler/**/*.cc']),
         use = 'BOOST BOOST_THREAD LIBEVENT LIBEVENT_PTHREADS LOG4CXX executor',
         includes = ".",
