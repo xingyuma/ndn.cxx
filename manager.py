@@ -57,7 +57,22 @@ def nameTransform(_str):
 
 def denial(_input):
 	_keyname = get_info(_input,"ndn-name");
-        _s = "./opt-tool nack " + _keyname + "  "+ _sign_id;
+        _keyname = "/ndn/ucla.edu/philip/KSK-1380665656";
+        _keyname_split = _keyname.split('/');
+        _sign_id_split = _sign_id.split('/');
+        _keyname_new = "/";
+        for i in range(1, len(_keyname_split)):
+                if (_keyname_split[i] == _sign_id_split[i]):
+                        _keyname_new += _keyname_split[i];
+                        _keyname_new += '/';
+                else:
+                        _keyname_new += 'KEY/';
+                        break;
+        for j in range(i,len(_keyname_split)):
+                _keyname_new += _keyname_split[j];
+                _keyname_new += '/';                
+
+        _s = "./build/opt-tool nack " + _keyname_new + "  "+ _sign_id;
 	os.system(_s);
 
 def issue(_input):
@@ -65,21 +80,37 @@ def issue(_input):
 	_email = get_info(_input,"email");
 	_key = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2Dk6cCbjzHJbFCxxlGDCvsgrxEIOB3tXrmoNsjiCAuxiA7UGV3m6HGMU3trc0mGC4SQK3IQYOSIP7IiUOQA/mbabo6obvYIKfFi4PA2sNECghiIvGCKErJZUNXhyoQhCCYe2M9IAkK6DdcAKiHMUIIKKxA2XOT7GNQ0VEOc8D5bmIAH9TvtfCwGsY5vmuxoioU+EfwWvOa8rIwP4KgeyG7HJ4/4/DlCjdMLn278qzEZLugrqUjGBZzUuqe6Z8695lbFGFehdvY4FqMT9zxXSxzbRk4wuD9XHtF3J/c6lktAis4MZsSWoGZWyiGEIb5lyTntMVtUP2JZ6aBfgQBvQ7wIDAQAB";
 	_keyname = get_info(_input,"ndn-name");
-        print "Input start time (in YYYYMMDDhhmmss)";
-        _start =  sys.stdin.readline().strip('\n');
-        print "Input end time (in YYYYMMDDhhmmss)";
-        _end =  sys.stdin.readline().strip('\n');
+#        print "Input start time (in YYYYMMDDhhmmss)";
+  #      _start =  sys.stdin.readline().strip('\n');
+ #       print "Input end time (in YYYYMMDDhhmmss)";
+        _keyname = "/ndn/ucla.edu/philip/KSK-1380665656";
+        _keyname_split = _keyname.split('/');
+        _sign_id_split = _sign_id.split('/');
+        _keyname_new = "/";
+        for i in range(1, len(_keyname_split)):
+                if (_keyname_split[i] == _sign_id_split[i]):
+                        _keyname_new += _keyname_split[i];
+                        _keyname_new += '/';
+                else:
+                        _keyname_new += 'KEY/';
+                        break;
+        for j in range(i,len(_keyname_split)):
+                _keyname_new += _keyname_split[j];
+                _keyname_new += '/';                
+                        
+        _start = '19900209111111';
+        _end = '20131111111111';
         _given_name = "aa";
         _surname = "bb";
         _org_name = "ucla";
         _email = "maxy12@cs.ucla.edu"
         _group_name = "irl";
         _advisor_name = "lixia zhang";
-        _subject = " 2.5.4.11 "+ _org_name + " 2.5.4.10 "+ _group_name + " 2.5.4.42 "+_given_name + " 2.5.4.4 "+ _surname + " 1.2.840.113549.1.9.1 " + _email + "2.5.4.80" + _advisor_name ;
-        print _subject
+        _homepage = "www.ucla.edu/cs/xingyu";
+        _subject = " 2.5.4.11 "+ _org_name + " 2.5.4.10 "+ _group_name + " 2.5.4.42 "+_given_name + " 2.5.4.4 "+ _surname + " 1.2.840.113549.1.9.1 " + _email + " 2.5.4.80 " + _advisor_name + " 2.5.4.3 " + _homepage ;
 
-	_s = "./ndn-certgen-opt -n " +_keyname+ " -S "+_start +" -E " + _end + " -N " + _subject + " -k " +_key+" -s " + _sign_id;
-#	print _s;
+	_s = "./build/ndn-certgen-opt -n " +_keyname_new+ " -S "+_start +" -E " + _end + " -N " + _subject + " -k " +_key+" -s " + _sign_id;
+        print _s
 	os.system(_s);
 	list = os.listdir(".");
 	array = "";
@@ -93,23 +124,24 @@ def issue(_input):
 					continue;
 				array += tt[0:len(tt)-1];
 #                        array = urllib.quote_plus(array);
-                        array = array.encode('hex')
-			_s = "curl -i http://cert.ndn.ucla.edu:5000/ndn/auth/v1.1/candidates/"+_email +"/addcert/"+array;
-			print _s;
+#                        array = array.encode('hex')
+#			_s = "curl -i http://cert.ndn.ucla.edu:5000/ndn/auth/v1.1/candidates/"+_email +"/addcert/"+array;
+#			print _s;
 #			subprocess.call(['curl','-i',_s]);
-                        os.system(_s);
+#                        os.system(_s);
 #			r = requests.post(_s, auth=('user', 'pass'));
 			break;
 
 def configuration(_cert,_inst_id):
-	query = 'http://cert.ndn.ucla.edu:5000/ndn/auth/v1.1/candidates/'+_inst_id;
-	command = "./opt-tool sign " + query;
+	_sign_tran = nameTransform(_sign_id);
+	query = 'http://cert.ndn.ucla.edu:5000/ndn/auth/v1.1/candidates/'+_sign_tran+'/';
+	command = "./build/opt-tool sign " + query;
         command += "  ";
         command += _sign_id;
-        print command
+#        print command
         list = os.popen(command).read();
         query = query + list;
-        print query
+        print 'here:  '+query;
 	r = requests.get(query, auth=('user', 'pass')) 
 	_it = r.text.split('<br/>');
         
@@ -128,14 +160,18 @@ def configuration(_cert,_inst_id):
 #                                print 'no certificate issued to' + _name
 
 def configure_cert(cert_name):
-        _s = "./ndn-install-cert -f " + cert_name + " -K -I";
+        _s = "./build/ndn-install-cert -f " + cert_name + " -K -I";
         print _s
 	os.system(_s);
 
 if __name__ == "__main__":
  #       _inst_id = ''
 #        _sign_id = '' #only sign pub key prefix
-        _configure_file = ''
+	command = "./build/opt-tool get-default-id ";
+        _sign_id = list = os.popen(command).read();
+        print _sign_id
+        denial('dsfa');
+        _configure_file = '';
         _args = sys.argv[1:];
         for i in range(0,len(_args)):
                 if (_args[i] == '-h'):
@@ -154,7 +190,6 @@ if __name__ == "__main__":
         if (_inst_id == '' or _sign_id == ''):
                 sys.exit(0);
         configuration(_sign_id,_inst_id);
-        
 #        print _inst_id;
 #        print _sign_id;
         

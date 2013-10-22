@@ -105,6 +105,16 @@ int main(int argc, char** argv)
 */
         
     }
+    
+    if (string(argv[1]) == "get-default-id")
+    {
+        Ptr<security::BasicIdentityStorage> publicStorage = Ptr<security::BasicIdentityStorage>::Create();
+        Ptr<security::OSXPrivatekeyStorage> privateStorage = Ptr<security::OSXPrivatekeyStorage>::Create();
+        security::IdentityManager identityManager(publicStorage, privateStorage);
+        Name identityName = identityManager.getDefaultIdentity ();
+        cout<<identityName.toUri()<<endl;
+    }
+    
     if (string(argv[1]) == "sign") //argv[2] the content to be signed argv[3] the signID
     {
     Ptr<security::BasicIdentityStorage> publicStorage = Ptr<security::BasicIdentityStorage>::Create();
@@ -112,6 +122,7 @@ int main(int argc, char** argv)
     
     security::IdentityManager identityManager(publicStorage, privateStorage);
     Blob b(argv[2],strlen(argv[2]));
+        
     Name signingCertificateName = identityManager.getDefaultCertificateNameByIdentity(Name(argv[3]));
 
 //        cout<<signingCertificateName.toUri()<<endl;
@@ -158,16 +169,19 @@ int main(int argc, char** argv)
         string keyname = argv[2];
         keyname += "/refusal";
         d.setName(keyname);
+        Name nackName = Name(keyname);
+        TimeInterval ti = time::NowUnixTimestamp();
+        ostringstream oss;
+        oss << ti.total_seconds();
+        nackName.append(oss.str());
         
         Name signingCertificateName = identityManager.getDefaultCertificateNameByIdentity(Name(argv[3]));
-        //    Name certName("/ndn/ucla.edu/xingyu/DSK-1379111405/ID-CERT/1379112388");
-
         identityManager.signByCertificate (d, signingCertificateName);
         Content c = d.getContent();
         cout<<c.getType()<<endl;
         
         Ptr<Blob> dataBlob = d.encodeToWire();
-        string outputFileName = getOutputFileName(keyname);
+        string outputFileName = getOutputFileName(nackName.toUri());
         ofstream ofs(outputFileName.c_str());
         
         ofs << "-----BEGIN NDN ID CERT-----\n";

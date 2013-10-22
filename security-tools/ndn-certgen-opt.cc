@@ -201,48 +201,47 @@ int main(int argc, char** argv)
         return 1;
     }
     
-//    cout<<"keybits  "<<keyBits<<endl;
-    
-    
     Ptr<Blob> keyBlob = getKeyBlobFromString(keyBits);
     
     boost::iostreams::stream<boost::iostreams::array_source> is (keyBlob->buf (), keyBlob->size ());
     Ptr<der::DerNode> node = der::DerNode::parse(reinterpret_cast<InputIterator &>(is));
     der::PublickeyVisitor pubkeyVisitor;
     Ptr<security::Publickey> publickey = boost::any_cast<Ptr<security::Publickey> >(node->accept(pubkeyVisitor));
-    
+  
     if (0 == vm.count("subject_name"))
     {
         cout << "subject_name must be specified" << endl;
         return 1;
     }
     
-    
     Ptr<security::IdentityCertificate> certificate = Create<security::IdentityCertificate>();
     certificate->setName(certName);
     certificate->setNotBefore(notBefore);
     certificate->setNotAfter(notAfter);
     certificate->setPublicKeyInfo(*publickey);
-    
+
     for (int i = 0 ; i < Lists.size()/2; i++)
     {
         security::CertificateSubDescrypt subDescryptName(Lists[2*i], Lists[2*i+1]);
         certificate->addSubjectDescription(subDescryptName);
     }
-    
+    certificate->encode();
     
     Ptr<security::BasicIdentityStorage> publicStorage = Ptr<security::BasicIdentityStorage>::Create();
     Ptr<security::OSXPrivatekeyStorage> privateStorage = Ptr<security::OSXPrivatekeyStorage>::Create();
-    
     security::IdentityManager identityManager(publicStorage, privateStorage);
     
     Name signingCertificateName = identityManager.getDefaultCertificateNameByIdentity(Name(signId));
     identityManager.signByCertificate(*certificate, signingCertificateName);
-    
+
     Ptr<Blob> dataBlob = certificate->encodeToWire();
     
     string outputFileName = getOutputFileName(certName.toUri());
     ofstream ofs(outputFileName.c_str());
+    
+    Content c = certificate->getContent();
+    cout<<"type: "<<c.getType()<<endl;
+
     
   //  certificate->printCertificate();
     
