@@ -4,10 +4,6 @@ import json
 import os,sys,getopt
 import urllib
 import argparse
-from Crypto.Signature import PKCS1_PSS
-from Crypto.Hash import SHA
-from Crypto.PublicKey import RSA
-from Crypto import Random
 
 _start = "";
 _end = "";
@@ -60,17 +56,18 @@ def denial(_input):
         _keyname = "/ndn/ucla.edu/philip/KSK-1380665656";
         _keyname_split = _keyname.split('/');
         _sign_id_split = _sign_id.split('/');
-        _keyname_new = "/";
-        for i in range(1, len(_keyname_split)):
+        _keyname_new = "";
+
+        for i in range(1, len(_sign_id_split)):
                 if (_keyname_split[i] == _sign_id_split[i]):
-                        _keyname_new += _keyname_split[i];
                         _keyname_new += '/';
+                        _keyname_new += _keyname_split[i];
                 else:
-                        _keyname_new += 'KEY/';
                         break;
-        for j in range(i,len(_keyname_split)):
-                _keyname_new += _keyname_split[j];
-                _keyname_new += '/';                
+        _keyname_new += '/KEY';
+        for j in range(i+1,len(_keyname_split)):
+         	_keyname_new += '/';
+       		_keyname_new += _keyname_split[j];
 
         _s = "./build/opt-tool nack " + _keyname_new + "  "+ _sign_id;
 	os.system(_s);
@@ -84,19 +81,22 @@ def issue(_input):
   #      _start =  sys.stdin.readline().strip('\n');
  #       print "Input end time (in YYYYMMDDhhmmss)";
         _keyname = "/ndn/ucla.edu/philip/KSK-1380665656";
+
         _keyname_split = _keyname.split('/');
         _sign_id_split = _sign_id.split('/');
-        _keyname_new = "/";
-        for i in range(1, len(_keyname_split)):
+        _keyname_new = "";
+
+        for i in range(1, len(_sign_id_split)):
                 if (_keyname_split[i] == _sign_id_split[i]):
-                        _keyname_new += _keyname_split[i];
                         _keyname_new += '/';
+                        _keyname_new += _keyname_split[i];
                 else:
-                        _keyname_new += 'KEY/';
                         break;
-        for j in range(i,len(_keyname_split)):
-                _keyname_new += _keyname_split[j];
-                _keyname_new += '/';                
+        _keyname_new += '/KEY';
+        for j in range(i+1,len(_keyname_split)):
+         	_keyname_new += '/';
+       		_keyname_new += _keyname_split[j];
+                 
                         
         _start = '19900209111111';
         _end = '20131111111111';
@@ -114,10 +114,15 @@ def issue(_input):
 	os.system(_s);
 	list = os.listdir(".");
 	array = "";
-	_keyname_tran = nameTransform(_keyname);
+	_keyname_tran = nameTransform(_keyname_new);
 	print _keyname_tran
 	for line in list:
 		if (line.find(_keyname_tran)>=0):
+			print line
+			publish_command = "ndnputfile " + _keyname_new + " " + line;
+                        print publish_command
+                        #			os.system(publish_command);    	       
+                        ret = os.popen(command).read();
 			ins = open( line, "r" );
 			for tt in ins:
 				if (tt.find("---")==0):
@@ -132,15 +137,14 @@ def issue(_input):
 #			r = requests.post(_s, auth=('user', 'pass'));
 			break;
 
-def configuration(_cert,_inst_id):
+def configuration():
 	_sign_tran = nameTransform(_sign_id);
 	query = 'http://cert.ndn.ucla.edu:5000/ndn/auth/v1.1/candidates/'+_sign_tran+'/';
 	command = "./build/opt-tool sign " + query;
         command += "  ";
         command += _sign_id;
-#        print command
         list = os.popen(command).read();
-        query = query + list;
+        query = query + base64Change(list);
         print 'here:  '+query;
 	r = requests.get(query, auth=('user', 'pass')) 
 	_it = r.text.split('<br/>');
@@ -165,12 +169,11 @@ def configure_cert(cert_name):
 	os.system(_s);
 
 if __name__ == "__main__":
- #       _inst_id = ''
-#        _sign_id = '' #only sign pub key prefix
 	command = "./build/opt-tool get-default-id ";
-        _sign_id = list = os.popen(command).read();
-        print _sign_id
-        denial('dsfa');
+        _sign_id = list = os.popen(command).read().strip('\n');
+#	_sign_id = "/ndn/ucla.edu";
+#        print _sign_id
+        issue('dsfa');
         _configure_file = '';
         _args = sys.argv[1:];
         for i in range(0,len(_args)):
@@ -181,15 +184,9 @@ if __name__ == "__main__":
                         configure_cert(_args[i+1]);
                         sys.exit(0);
 #                        _cert_file = _args[i+1];
-                if (_args[i] == '-i'):
-                        _inst_id = _args[i+1];
-                if (_args[i] == '-s'):
-                        _sign_id = _args[i+1];
                 if (_args[i] == '-f'):
                         _configure_file = _args[i+1];
-        if (_inst_id == '' or _sign_id == ''):
-                sys.exit(0);
-        configuration(_sign_id,_inst_id);
+        configuration();
 #        print _inst_id;
 #        print _sign_id;
         
