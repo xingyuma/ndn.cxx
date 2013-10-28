@@ -80,9 +80,13 @@ namespace ndn
                 pubkeysink.MessageEnd();
                 
                 /*set file permission*/
-                using namespace boost::filesystem;
-		permissions(privateKeyName.c_str(), owner_read);
-		permissions(publicKeyName.c_str(), others_read|owner_read);
+                 string per1 = "chmod 400 " + privateKeyName;
+                 string per2 = "chmod 444 " + publicKeyName;
+                 system(per1.c_str());
+                 system(per2.c_str());
+                 //                using namespace boost::filesystem;
+//		permissions(privateKeyName.c_str(), owner_read);
+//		permissions(publicKeyName.c_str(), others_read|owner_read);
             }
             return;
         }
@@ -440,7 +444,7 @@ namespace ndn
         }
         
         void 
-        SimpleKeyStore::writeSymetricKey(const string &filename, const const Blob & pData)
+        SimpleKeyStore::writeSymetricKey(const string &filename, const Blob & pData)
         {
             ofstream file (filename.c_str());
             string key_content = string(pData.buf(),pData.size());

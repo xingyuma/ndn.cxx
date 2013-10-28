@@ -185,7 +185,10 @@ namespace security
 
     Ptr<Blob> unsignedData = certificate->encodeToUnsignedWire();
 
-    Ptr<Blob> sigBits = m_privateStorage->sign (*unsignedData, keyName);
+    Ptr<IdentityCertificate> signerCertificate = getCertificate(signerCertificateName);
+    Name signerkeyName = signerCertificate->getPublicKeyName();
+
+    Ptr<Blob> sigBits = m_privateStorage->sign (*unsignedData, signerkeyName);
     
     sha256Sig->setSignatureBits(*sigBits);
 
@@ -296,7 +299,9 @@ namespace security
 
     //For temporary usage, we support RSA + SHA256 only, but will support more.
     Ptr<signature::Sha256WithRsa> sha256Sig = Ptr<signature::Sha256WithRsa>::Create();
-    KeyLocator keyLocator;
+
+    KeyLocator keyLocator;    
+
     keyLocator.setType (KeyLocator::KEYNAME);
     keyLocator.setKeyName (certName);
     

@@ -228,8 +228,8 @@ int main(int argc, char** argv)
 
   string outputFileName = getOutputFileName(certName.toUri());
   ofstream ofs(outputFileName.c_str());
-    Content c = certificate->getContent();
-    cout<<"type: "<<c.getType()<<endl;
+  Content c = certificate->getContent();
+  cout<<"type: "<<c.getType()<<endl;
 
   ofs << "-----BEGIN NDN ID CERT-----\n";
   string encoded;
